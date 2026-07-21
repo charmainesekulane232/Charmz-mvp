@@ -100,13 +100,23 @@ Rules:
     }
 
     const cleaned = text.replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(cleaned);
+
+    let parsed;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch (parseErr) {
+      console.error("JSON parse failed. Raw text was:", cleaned);
+      return NextResponse.json(
+        { error: "Gemini returned invalid JSON. Try Re-analyze again." },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(parsed);
   } catch (err) {
     console.error("Gemini analysis error:", err);
     return NextResponse.json(
-      { error: "AI analysis failed. Check your GEMINI_API_KEY in .env.local" },
+      { error: "AI analysis failed — network or connection issue. Try again." },
       { status: 500 }
     );
   }
