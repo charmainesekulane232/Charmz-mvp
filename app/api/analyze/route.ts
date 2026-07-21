@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+// Calls Google Gemini's free tier to run full AI CFO analysis:
+// categorization, safe-to-spend, business health score, and proactive risk insights.
+// Get a free key (no credit card) at https://ai.google.dev
 export async function POST() {
   const supabase = createClient();
   const {
@@ -11,16 +14,100 @@ export async function POST() {
     return NextResponse.json({ error: "Not logged in" }, { status: 401 });
   }
 
-  // TEMPORARY TEST: skip Gemini entirely, return fake data to confirm the pipeline works
-  return NextResponse.json({
-    categories: [{ category: "Test", total: 100 }],
-    safe_to_spend: 12345,
-    cash_runway_days: 47,
-    business_health_score: 83,
-    health_breakdown: [{ label: "Test Score", score: 90 }],
-    insights: [
-      { title: "This is a test", detail: "If you see this, the pipeline works", severity: "positive" },
-    ],
-    summary: "TEST MODE — Gemini is bypassed right now.",
-  });
+  if (!process.env.GEMINI_API_KEY) {
+    return NextResponse.json(
+      { error: "GEMINI_API_KEY is not set in this environment." },
+      { status: 500 }
+    );
+  }
+
+  const { data: transactions } = await supabase
+    .from("transactions")
+    .select("date, description, amount")
+    .order("date", { ascending: false })
+    .limit(100);
+
+  if (!transactions || transactions.length === 0) {
+    return NextResponse.json({ error: "No transactions found" }, { status: 400 });
+  }
+
+  const prompt = `You are an AI CFO analyzing a small business's raw bank transactions. Here is the transaction list in JSON:
+${JSON.stringify(transactions)}
+
+Analyze this like a financial operating system would: categorize spending, assess cash health, calculate runway, and surface risks before they become crises (e.g. client concentration, subscription bloat, shrinking runway).
+
+Return ONLY valid JSON (no markdown, no backticks, no explanation) in this EXACT shape:
+{
+  "categories": [{"category": "string", "total": number}],
+  "safe_to_spend": number,
+  "cash_runway_days": number,
+  "business_health_score": number,
+  "health_breakdown": [
+    {"label": "Cash Stability", "score": number},
+    {"label": "Revenue Predictability", "score": number},
+    {"label": "Client Risk", "score": number},
+    {"label": "Burn Rate", "score": number}
+  ],
+  "insights": [
+    {"title": "string", "detail": "string", "severity": "critical" | "watch" | "positive"}
+  ],
+  "summary": "one or two sentence plain-language business heartbeat summary"
+}
+
+Rules:
+- business_health_score and all health_breakdown scores are 0-100.
+- cash_runway_days is an estimate based on current cash position and average monthly burn.
+- insights should surface 2-4 real patterns you find in the data (e.g. one client representing a large % of revenue, a rising expense category, tax reserve below a healthy ~25-28% of profit).
+- Be specific with real numbers from the data, not generic advice.`;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            maxOutputTokens: 4096,
+            responseMimeType: "application/json",
+            thinkingConfig: {
+              thinkingBudget: 0,
+            },
+          },
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+      console.error("Gemini API error:", data.error);
+      return NextResponse.json(
+        { error: `Gemini error: ${data.error.message ?? "unknown"}` },
+        { status: 500 }
+      );
+    }
+
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+      console.error("No text in Gemini response:", JSON.stringify(data));
+      return NextResponse.json(
+        { error: "Gemini returned no content. Check the server logs." },
+        { status: 500 }
+      );
+    }
+
+    const cleaned = text.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(cleaned);
+
+    return NextResponse.json(parsed);
+  } catch (err) {
+    console.error("Gemini analysis error:", err);
+    return NextResponse.json(
+      { error: "AI analysis failed. Check your GEMINI_API_KEY in .env.local" },
+      { status: 500 }
+    );
+  }
 }
