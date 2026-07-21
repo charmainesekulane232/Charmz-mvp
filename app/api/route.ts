@@ -31,8 +31,16 @@ export async function POST() {
     return NextResponse.json({ error: "No transactions found" }, { status: 400 });
   }
 
-  const prompt = `You are an AI CFO analyzing a small business's raw bank transactions. Here is the transaction list in JSON:
-${JSON.stringify(transactions)}
+  body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            maxOutputTokens: 4096,
+            responseMimeType: "application/json",
+          },
+          thinkingConfig: {
+            thinkingBudget: 0,
+          },
+        }),
 
 Analyze this like a financial operating system would: categorize spending, assess cash health, calculate runway, and surface risks before they become crises (e.g. client concentration, subscription bloat, shrinking runway).
 
