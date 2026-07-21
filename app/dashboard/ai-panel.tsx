@@ -80,12 +80,16 @@ export default function AiPanel() {
           crises.
         </p>
       )}
+{data && (
+  <div className="space-y-4">
+    <pre className="text-xs text-yellow-300 bg-black rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">
+      DEBUG: {JSON.stringify(data, null, 2)}
+    </pre>
 
-      {data && (
-        <div className="space-y-4">
-          <p className="text-sm text-gray-300 bg-card rounded-lg p-4">
-            {data.summary}
-          </p>
+    <p className="text-sm text-gray-300 bg-card rounded-lg p-4">
+      {data.summary}
+    </p>
+      
 
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-card rounded-xl p-5">
