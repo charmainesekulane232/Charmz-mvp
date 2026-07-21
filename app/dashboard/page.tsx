@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import AiPanel from "./ai-panel";
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -76,6 +77,8 @@ export default async function DashboardPage() {
               </p>
             </div>
           </div>
+
+          <AiPanel />
 
           <h2 className="text-lg font-semibold mb-3">Recent Transactions</h2>
           <div className="space-y-2">
