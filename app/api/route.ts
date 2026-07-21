@@ -14,6 +14,13 @@ export async function POST() {
     return NextResponse.json({ error: "Not logged in" }, { status: 401 });
   }
 
+  if (!process.env.GEMINI_API_KEY) {
+    return NextResponse.json(
+      { error: "GEMINI_API_KEY is not set in this environment." },
+      { status: 500 }
+    );
+  }
+
   const { data: transactions } = await supabase
     .from("transactions")
     .select("date, description, amount")
@@ -66,7 +73,25 @@ Rules:
     );
 
     const data = await response.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
+
+    if (data.error) {
+      console.error("Gemini API error:", data.error);
+      return NextResponse.json(
+        { error: `Gemini error: ${data.error.message ?? "unknown"}` },
+        { status: 500 }
+      );
+    }
+
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+      console.error("No text in Gemini response:", JSON.stringify(data));
+      return NextResponse.json(
+        { error: "Gemini returned no content. Check the server logs." },
+        { status: 500 }
+      );
+    }
+
     const cleaned = text.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(cleaned);
 
