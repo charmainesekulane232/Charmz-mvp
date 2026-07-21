@@ -102,7 +102,8 @@ Rules:
     const cleaned = text.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(cleaned);
 
-    return NextResponse.json(parsed);
+    // TEMPORARY: include raw Gemini response for debugging
+    return NextResponse.json({ ...parsed, _raw_debug: data });
   } catch (err) {
     console.error("Gemini analysis error:", err);
     return NextResponse.json(
