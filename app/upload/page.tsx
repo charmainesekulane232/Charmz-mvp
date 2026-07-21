@@ -88,9 +88,22 @@ export default function UploadPage() {
   return (
     <div className="max-w-lg mx-auto px-6 py-16">
       <h1 className="text-2xl font-bold mb-2">Upload Bank Statement</h1>
-      <p className="text-gray-400 mb-8">
+      <p className="text-gray-400 mb-4">
         CSV from Capitec, FNB, Nedbank, Absa, or Standard Bank.
       </p>
+
+      <div className="bg-card border border-gray-800 rounded-lg p-4 mb-6 text-sm text-gray-400">
+        <p className="mb-1">
+          <span className="text-gray-300 font-medium">
+            Statement password-protected?
+          </span>
+        </p>
+        <p>
+          Open it in your banking app or PDF reader, enter your password to
+          unlock it, then export/save as an unprotected CSV before
+          uploading. We never see or store your bank password.
+        </p>
+      </div>
 
       <label className="block border-2 border-dashed border-gray-700 rounded-xl p-10 text-center cursor-pointer hover:border-accent transition">
         <input
