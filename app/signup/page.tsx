@@ -6,67 +6,75 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SignupPage() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
-  const router = useRouter();
+  const [error, setError] =useState<string | null>(null);
 
-  async function handleSignup(e: React.FormEvent) {
+  async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    setLoading(true);
     setError(null);
 
     if (!agreed) {
-      setError("You must agree to the Terms and Privacy Policy to continue.");
+      setLoading(false);
+      setError("You must agree to the Terms and Privacy Policy.");
       return;
     }
 
-    setLoading(true);
-const supabase = createClient();
+    const supabase = createClient();
 
-const { data, error } = await supabase.auth.signUp({
-  email,
-  password,
-});
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
 
-setLoading(false);
+    if (error) {
+      setLoading(false);
+      setError(error.message);
+      return;
+    }
 
-if (error) {
-  setError(error.message);
-  return;
-}
+    // Check if the user has a session
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-// Wait for session
-const {
-  data: { session },
-} = await supabase.auth.getSession();
+    setLoading(false);
 
-if (session) {
-  setRedirecting(true);
-  router.replace("/welcome");
-  router.refresh();
-} else {
-  setError(
-    "Please check your email to confirm your account before continuing."
-  );
-}
-    
+    if (!session) {
+      setError(
+        "Please verify your email first, then log in."
+      );
+      return;
+    }
+
+    setRedirecting(true);
+
+    router.replace("/welcome");
+    router.refresh();
+  }
 
   if (redirecting) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-indigo-700 to-blue-900">
-        <div className="relative w-16 h-16 mb-6">
-          <div className="absolute inset-0 rounded-full border-2 border-white/20" />
-          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-white animate-spin" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-white text-xl font-bold">C</span>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-indigo-700 to-blue-900">
+        <div className="text-center">
+          <div className="mx-auto mb-6 h-16 w-16 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
+
+          <h1 className="text-3xl font-bold text-white">
+            Charmz.ai
+          </h1>
+
+          <p className="mt-2 text-white/80">
+            Setting up your account...
+          </p>
         </div>
-        <p className="text-white/90 text-sm tracking-wide">
-          Setting up your account...
-        </p>
       </div>
     );
   }
@@ -74,49 +82,62 @@ if (session) {
   return (
     <div className="flex min-h-screen items-center justify-center px-6">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-1">Charmz.ai</h1>
-        <p className="text-gray-400 mb-8">Create your account</p>
+
+        <h1 className="text-2xl font-bold mb-1">
+          Charmz.ai
+        </h1>
+
+        <p className="text-gray-400 mb-8">
+          Create your account
+        </p>
 
         <form onSubmit={handleSignup} className="space-y-4">
+
           <input
             type="email"
-            placeholder="Email"
             required
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-lg bg-card border border-gray-700 px-4 py-3 outline-none focus:border-accent"
           />
+
           <input
             type="password"
-            placeholder="Password (min 6 characters)"
             required
             minLength={6}
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded-lg bg-card border border-gray-700 px-4 py-3 outline-none focus:border-accent"
           />
 
-          <label className="flex items-start gap-3 cursor-pointer select-none">
+          <label className="flex items-start gap-3">
             <input
               type="checkbox"
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
-              className="mt-0.5 w-4 h-4 rounded border-gray-700 bg-card accent-accent shrink-0"
+              className="mt-1 accent-accent"
             />
-            <span className="text-xs text-gray-400 leading-relaxed">
+
+            <span className="text-xs text-gray-400">
               I agree to the{" "}
-              <Link href="/terms" className="underline text-gray-300">
+              <Link href="/terms" className="underline">
                 Terms
               </Link>{" "}
               and{" "}
-              <Link href="/privacy" className="underline text-gray-300">
+              <Link href="/privacy" className="underline">
                 Privacy Policy
               </Link>
               .
             </span>
           </label>
 
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && (
+            <p className="text-sm text-red-400">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
@@ -125,14 +146,16 @@ if (session) {
           >
             {loading ? "Creating account..." : "Sign Up"}
           </button>
+
         </form>
 
-        <p className="text-gray-400 text-sm mt-6 text-center">
+        <p className="mt-6 text-center text-sm text-gray-400">
           Already have an account?{" "}
           <Link href="/login" className="text-accent">
             Log in
           </Link>
         </p>
+
       </div>
     </div>
   );
