@@ -10,6 +10,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const router = useRouter();
 
   async function handleSignup(e: React.FormEvent) {
@@ -28,8 +29,26 @@ export default function SignupPage() {
     }
 
     // If email confirmation is OFF in Supabase settings, user is logged in immediately
-    router.push("/dashboard");
+    setRedirecting(true);
+    router.push("/welcome");
     router.refresh();
+  }
+
+  if (redirecting) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-indigo-700 to-blue-900">
+        <div className="relative w-16 h-16 mb-6">
+          <div className="absolute inset-0 rounded-full border-2 border-white/20" />
+          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-white animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-white text-xl font-bold">C</span>
+          </div>
+        </div>
+        <p className="text-white/90 text-sm tracking-wide">
+          Setting up your account...
+        </p>
+      </div>
+    );
   }
 
   return (
