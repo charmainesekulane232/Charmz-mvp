@@ -24,22 +24,35 @@ export default function SignupPage() {
     }
 
     setLoading(true);
+const supabase = createClient();
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signUp({ email, password });
+const { data, error } = await supabase.auth.signUp({
+  email,
+  password,
+});
 
-    setLoading(false);
+setLoading(false);
 
-    if (error) {
-      setError(error.message);
-      return;
-    }
+if (error) {
+  setError(error.message);
+  return;
+}
 
-    // If email confirmation is OFF in Supabase settings, user is logged in immediately
-    setRedirecting(true);
-    router.push("/welcome");
-    router.refresh();
-  }
+// Wait for session
+const {
+  data: { session },
+} = await supabase.auth.getSession();
+
+if (session) {
+  setRedirecting(true);
+  router.replace("/welcome");
+  router.refresh();
+} else {
+  setError(
+    "Please check your email to confirm your account before continuing."
+  );
+}
+    
 
   if (redirecting) {
     return (
