@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function WelcomePage() {
   const router = useRouter();
+
   const [showLogo, setShowLogo] = useState(true);
   const [businessName, setBusinessName] = useState("");
   const [biggestWorry, setBiggestWorry] = useState("");
@@ -17,12 +18,14 @@ export default function WelcomePage() {
     return () => clearTimeout(timer);
   }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
     setSaving(true);
     setError(null);
 
     const supabase = createClient();
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -55,31 +58,81 @@ export default function WelcomePage() {
 
   if (showLogo) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-indigo-700 to-blue-900">
-        <div className="relative w-16 h-16 mb-6">
-          <div className="absolute inset-0 rounded-full border-2 border-white/20" />
-          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-white animate-spin" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-white text-xl font-bold">C</span>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-indigo-700 to-blue-900">
+        <div className="text-center">
+          <div className="mx-auto mb-6 h-16 w-16 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
+          <h1 className="text-3xl font-bold text-white">Charmz.ai</h1>
+          <p className="mt-2 text-white/80">
+            Preparing your AI Financial Co-Pilot...
+          </p>
         </div>
-        <p className="text-white/90 text-sm tracking-wide">Charmz.ai</p>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6">
-      <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-1">Let&apos;s set you up</h1>
-        <p className="text-gray-400 mb-8">
-          Two quick things so your dashboard actually feels like yours.
+    <div className="flex min-h-screen items-center justify-center bg-gray-950 px-6 text-white">
+      <div className="w-full max-w-md rounded-2xl bg-gray-900 p-8 shadow-xl">
+
+        <h1 className="mb-2 text-2xl font-bold">
+          Let's set you up
+        </h1>
+
+        <p className="mb-6 text-gray-400">
+          Two quick questions before we build your dashboard.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
+
           <div>
-            <label className="text-xs text-gray-400 uppercase mb-2 block">
-              What&apos;s your business called?
+            <label className="mb-2 block text-sm">
+              Business Name
             </label>
+
+            <input
+              type="text"
+              value={businessName}
+              onChange={(e) => setBusinessName(e.target.value)}
+              placeholder="Acme Consulting"
+              required
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm">
+              What's your biggest financial worry?
+            </label>
+
+            <textarea
+              value={biggestWorry}
+              onChange={(e) => setBiggestWorry(e.target.value)}
+              placeholder="Cash flow, taxes, late payments..."
+              rows={4}
+              required
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 outline-none"
+            />
+          </div>
+
+          {error && (
+            <div className="rounded-lg bg-red-500/20 p-3 text-red-300">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full rounded-lg bg-indigo-600 py-3 font-semibold hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Continue to Dashboard"}
+          </button>
+
+        </form>
+
+      </div>
+    </div>
+  );
+}
 
 
