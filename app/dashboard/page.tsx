@@ -115,8 +115,7 @@ export default async function DashboardPage() {
           </div>
         </>
       )}
-    <        </>
-      )}
+    
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-[#111827] border-t border-gray-800">
