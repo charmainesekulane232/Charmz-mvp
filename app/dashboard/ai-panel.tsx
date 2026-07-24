@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type HealthBreakdown = { label: string; score: number };
 type Insight = {
@@ -29,6 +29,46 @@ const severityBadge: Record<Insight["severity"], string> = {
   watch: "bg-orange-400/20 text-orange-300",
   positive: "bg-blue-400/20 text-blue-300",
 };
+
+const LOADING_STEPS = [
+  "Reading your transactions...",
+  "Calculating safe-to-spend...",
+  "Checking cash runway...",
+  "Scanning for risks...",
+  "Scoring business health...",
+  "Finalizing your insights...",
+];
+
+function AiLoader() {
+  const [stepIndex, setStepIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStepIndex((prev) =>
+        prev < LOADING_STEPS.length - 1 ? prev + 1 : prev
+      );
+    }, 1400);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center py-16 px-4">
+      <div className="relative w-14 h-14 mb-6">
+        <div className="absolute inset-0 rounded-full border-2 border-gray-800" />
+        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-accent animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-accent text-lg font-bold">C</span>
+        </div>
+      </div>
+      <p className="text-sm text-gray-300 font-medium tracking-wide transition-opacity duration-300">
+        {LOADING_STEPS[stepIndex]}
+      </p>
+      <p className="text-xs text-gray-600 mt-2">
+        This usually takes a few seconds
+      </p>
+    </div>
+  );
+}
 
 export default function AiPanel() {
   const [data, setData] = useState<Analysis | null>(null);
@@ -81,7 +121,9 @@ export default function AiPanel() {
         </p>
       )}
 
-      {data && (
+      {loading && <AiLoader />}
+
+      {!loading && data && (
         <div className="space-y-4">
           <p className="text-sm text-gray-300 bg-card rounded-lg p-4">
             {data.summary}
