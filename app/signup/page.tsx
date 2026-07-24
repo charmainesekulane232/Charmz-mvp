@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
@@ -15,8 +16,14 @@ export default function SignupPage() {
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+
+    if (!agreed) {
+      setError("You must agree to the Terms and Privacy Policy to continue.");
+      return;
+    }
+
+    setLoading(true);
 
     const supabase = createClient();
     const { error } = await supabase.auth.signUp({ email, password });
@@ -76,11 +83,31 @@ export default function SignupPage() {
             className="w-full rounded-lg bg-card border border-gray-700 px-4 py-3 outline-none focus:border-accent"
           />
 
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-gray-700 bg-card accent-accent shrink-0"
+            />
+            <span className="text-xs text-gray-400 leading-relaxed">
+              I agree to the{" "}
+              <Link href="/terms" className="underline text-gray-300">
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className="underline text-gray-300">
+                Privacy Policy
+              </Link>
+              .
+            </span>
+          </label>
+
           {error && <p className="text-red-400 text-sm">{error}</p>}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !agreed}
             className="w-full rounded-lg bg-accent py-3 font-semibold disabled:opacity-50"
           >
             {loading ? "Creating account..." : "Sign Up"}
@@ -92,18 +119,6 @@ export default function SignupPage() {
           <Link href="/login" className="text-accent">
             Log in
           </Link>
-        </p>
-
-        <p className="text-xs text-gray-600 mt-8 text-center">
-          By signing up, you agree to our{" "}
-          <Link href="/terms" className="underline">
-            Terms
-          </Link>{" "}
-          and{" "}
-          <Link href="/privacy" className="underline">
-            Privacy Policy
-          </Link>
-          .
         </p>
       </div>
     </div>
