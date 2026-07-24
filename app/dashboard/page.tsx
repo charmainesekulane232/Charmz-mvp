@@ -115,6 +115,48 @@ export default async function DashboardPage() {
           </div>
         </>
       )}
+    <        </>
+      )}
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-[#111827] border-t border-gray-800">
+        <div className="max-w-2xl mx-auto flex justify-around py-3">
+
+          <Link
+            href="/dashboard"
+            className="flex flex-col items-center text-purple-400 text-xs"
+          >
+            <span className="text-xl">🏠</span>
+            Dashboard
+          </Link>
+
+          <Link
+            href="/upload"
+            className="flex flex-col items-center text-gray-400 text-xs"
+          >
+            <span className="text-xl">📤</span>
+            Upload
+          </Link>
+
+          <Link
+            href="/insights"
+            className="flex flex-col items-center text-gray-400 text-xs"
+          >
+            <span className="text-xl">📊</span>
+            Insights
+          </Link>
+
+          <Link
+            href="/settings"
+            className="flex flex-col items-center text-gray-400 text-xs"
+          >
+            <span className="text-xl">⚙️</span>
+            Settings
+          </Link>
+
+        </div>
+      </nav>
+
     </div>
   );
 }
