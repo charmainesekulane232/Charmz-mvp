@@ -24,6 +24,7 @@ export default async function DashboardPage() {
     .reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
 
   const profit = revenue - expenses;
+  const firstName = user?.email?.split("@")[0];
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-10 pb-24">
@@ -44,12 +45,22 @@ export default async function DashboardPage() {
 
       {rows.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-gray-400 mb-4">
-            No transactions yet, {user?.email}.
+          <p className="text-gray-300 text-lg font-medium mb-2">
+            Welcome{firstName ? `, ${firstName}` : ""}.
           </p>
-          <Link href="/upload" className="text-accent underline">
+          <p className="text-gray-500 mb-6">
+            Upload a bank statement to get your first business health
+            snapshot.
+          </p>
+          <Link
+            href="/upload"
+            className="bg-accent px-5 py-2.5 rounded-lg text-sm font-semibold inline-block"
+          >
             Upload your first bank statement
           </Link>
+          <p className="text-xs text-gray-600 mt-4">
+            🔒 Bank-level data isolation — your data is never shared
+          </p>
         </div>
       ) : (
         <>
